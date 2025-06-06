@@ -5,16 +5,18 @@ import lombok.RequiredArgsConstructor;
 import org.example.weatherapplicaton.data.WeatherData;
 import org.example.weatherapplicaton.exception.CityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import java.time.Duration;
 
 
 @Service
 @RequiredArgsConstructor
 public class WeatherService {
 
-    private final RestClient restClient;
+    private final WebClient webClient;
 
     @Value("${weather.api.key}")
     private String apiKey;
@@ -24,13 +26,16 @@ public class WeatherService {
 
     public WeatherData getWeather(String city) {
         String url = apiUrl + "?q=" + city + "&appid=" + apiKey + "&units=metric";
-        try {
-            return restClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .body(WeatherData.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new CityNotFoundException("City not found: " + city);
-        }
+
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        response -> Mono.error(new CityNotFoundException("City not found: " + city)))
+                .bodyToMono(WeatherData.class)
+                .timeout(Duration.ofSeconds(10))
+                .retry(2)
+                .block();
     }
+
 }

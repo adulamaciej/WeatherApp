@@ -2,14 +2,14 @@ package org.example.weatherapplicaton.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class RestClientConfig {
+public class WebClientConfig {
 
     @Bean
-    public RestClient restClient() {
-        return RestClient.create();
+    public WebClient webClient() {
+        return WebClient.create();
     }
 }
 

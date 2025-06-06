@@ -3,6 +3,7 @@ package org.example.weatherapplicaton.exception;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 
 @ControllerAdvice
@@ -11,6 +12,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CityNotFoundException.class)
     public String handleCityNotFoundException(Model model) {
+        model.addAttribute("errorMessage", "City not found. Please check the spelling and try again.");
+        return "error";
+    }
+
+    @ExceptionHandler(WebClientResponseException.class)
+    public String handleWebClientException(Model model) {
         model.addAttribute("errorMessage", "City not found. Please check the spelling and try again.");
         return "error";
     }
